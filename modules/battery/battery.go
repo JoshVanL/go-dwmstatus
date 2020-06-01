@@ -27,8 +27,18 @@ type battery struct {
 }
 
 func Battery(h *handler.Handler, s *string) error {
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Second * 5)
 	ch := h.WatchSignal(watcher.RealTimeSignals["RTMIN+2"])
+
+	capCh, err := h.Watcher().Add(capPath)
+	if err != nil {
+		return err
+	}
+
+	statCh, err := h.Watcher().Add(statPath)
+	if err != nil {
+		return err
+	}
 
 	b := &battery{
 		s: s,
@@ -38,18 +48,19 @@ func Battery(h *handler.Handler, s *string) error {
 	if err := b.setBatteryString(); err != nil {
 		return err
 	}
-
 	b.h.Tick()
 
 	go func() {
 		for {
-			b.h.Must(b.setBatteryString())
-			b.h.Tick()
-
 			select {
 			case <-ticker.C:
 			case <-ch:
+			case <-capCh:
+			case <-statCh:
 			}
+
+			b.h.Must(b.setBatteryString())
+			b.h.Tick()
 		}
 	}()
 
@@ -95,11 +106,11 @@ func getIcon(capacity int) string {
 		//b.Color = "#000000"
 		return ""
 
-	case capacity > 90:
-		//b.Color = "#ccffcc"
+	//case capacity > 90:
+	//b.Color = "#ccffcc"
 
-	case capacity > 70:
-		//b.Color = "#bbffbb"
+	//case capacity > 70:
+	//b.Color = "#bbffbb"
 
 	case capacity > 75:
 		return ""

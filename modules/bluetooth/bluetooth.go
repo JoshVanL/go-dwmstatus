@@ -102,7 +102,6 @@ func (b *bluetoothHandler) watch() error {
 				fmt.Fprintf(os.Stderr, "failed to get propery value: %s\n", value.String())
 				continue
 			}
-			fmt.Printf("%#+v\n", prop)
 
 			switch prop.Interface {
 			case adapter.Adapter1Interface:
@@ -141,7 +140,7 @@ func (b *bluetoothHandler) update() {
 	}
 
 	if b.powerOn {
-		output += " "
+		output += " "
 	}
 
 	*b.s = output

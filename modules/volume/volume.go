@@ -5,6 +5,8 @@ import (
 	"math"
 	"os"
 
+	//"os"
+
 	"github.com/auroralaboratories/pulse"
 
 	"github.com/joshvanl/go-dwmstatus/handler"
@@ -15,12 +17,13 @@ var (
 )
 
 func Volume(h *handler.Handler, s *string) error {
-	//sinkClient, err := pulse.NewClient("go-dwnstatus-volume")
-	_, err := pulse.NewClient("go-dwnstatus-volume")
+	sinkClient, err := pulse.NewClient("go-dwnstatus-volume")
+	//_, err := pulse.NewClient("go-dwnstatus-volume")
 	if err != nil {
 		return err
 	}
 
+	//ch := make(chan struct{})
 	ch, err := pulseWatcher()
 	if err != nil {
 		return err
@@ -29,12 +32,12 @@ func Volume(h *handler.Handler, s *string) error {
 	go func() {
 		for {
 			//*s, err = "  ", nil
-			*s = ""
-			//*s, err = updateVolume(sinkClient)
-			h.Tick()
+			//*s = ""
+			*s, err = updateVolume(sinkClient)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to update volume: %s", err)
 			}
+			h.Tick()
 			//TODO: add muted option
 
 			<-ch
@@ -65,16 +68,12 @@ func updateVolume(c *pulse.Client) (string, error) {
 	}
 	vol := math.Round(100 * float64(sinks[len(sinks)-1].CurrentVolumeStep) / float64(sinks[len(sinks)-1].NumVolumeSteps))
 
-	print(vol)
-	return "  ", nil
-	//icon := "  "
-	//if vol == 0 {
-	//icon = ""
-	//} else if vol < 40 {
-	//	icon = ""
-	//}
+	icon := ""
+	if vol == 0 {
+		icon = ""
+	} else if vol < 40 {
+		icon = ""
+	}
 
-	//return fmt.Sprintf(" %s %.0f%%", icon, vol), nil
-	//return fmt.Sprintf(" %.0f%%", vol), nil
-	//return icon, nil
+	return fmt.Sprintf(" %s %.0f%%", icon, vol), nil
 }

@@ -72,7 +72,8 @@ func (h *Handler) Tick() {
 		output += *s
 	}
 
-	setStatus(C.CString(output))
+	fmt.Printf("%s\n", output)
+	//setStatus(C.CString(output))
 }
 
 func setStatus(s *C.char) {

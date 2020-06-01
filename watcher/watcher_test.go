@@ -63,12 +63,12 @@ func must(t *testing.T, err error) {
 	}
 }
 
-func newFile(t *testing.T, w *Watcher) (*os.File, chan struct{}) {
+func newFile(t *testing.T, w *Watcher) (*os.File, <-chan struct{}) {
 	f, err := ioutil.TempFile("", "watcher")
 	must(t, err)
 
-	ch := make(chan struct{})
-	must(t, w.AddFile(f.Name(), ch))
+	ch, err := w.Add(f.Name())
+	must(t, err)
 
 	return f, ch
 }

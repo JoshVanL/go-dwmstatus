@@ -13,12 +13,12 @@ import (
 func Mic(h *handler.Handler, s *string) error {
 	sinkClient, err := pulse.NewClient("go-dwnstatus-mic")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get mic client for pulse: %s", err)
 	}
 
 	ch, err := pulseWatcher()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get watcher for mic: %s", err)
 	}
 
 	go func() {
@@ -41,12 +41,13 @@ func updateMic(c *pulse.Client) (string, error) {
 	if err != nil {
 		return "-", err
 	}
+
 	for _, s := range sinks {
 		if strings.Contains(s.Name, "alsa_input") {
 			if s.Muted {
-				return "here  ", nil
+				return "", nil
 			}
-			return "here  ", nil
+			return "", nil
 		}
 	}
 
