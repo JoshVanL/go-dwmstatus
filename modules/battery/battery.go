@@ -8,7 +8,6 @@ import (
 
 	"github.com/joshvanl/go-dwmstatus/handler"
 	"github.com/joshvanl/go-dwmstatus/modules/utils"
-	"github.com/joshvanl/go-dwmstatus/watcher"
 )
 
 const (
@@ -26,19 +25,9 @@ type battery struct {
 	h *handler.Handler
 }
 
+// TODO: make better..
 func Battery(h *handler.Handler, s *string) error {
-	ticker := time.NewTicker(time.Second * 5)
-	ch := h.WatchSignal(watcher.RealTimeSignals["RTMIN+2"])
-
-	capCh, err := h.Watcher().Add(capPath)
-	if err != nil {
-		return err
-	}
-
-	statCh, err := h.Watcher().Add(statPath)
-	if err != nil {
-		return err
-	}
+	ticker := time.NewTicker(time.Second * 2)
 
 	b := &battery{
 		s: s,
@@ -52,13 +41,7 @@ func Battery(h *handler.Handler, s *string) error {
 
 	go func() {
 		for {
-			select {
-			case <-ticker.C:
-			case <-ch:
-			case <-capCh:
-			case <-statCh:
-			}
-
+			<-ticker.C
 			b.h.Must(b.setBatteryString())
 			b.h.Tick()
 		}

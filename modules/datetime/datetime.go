@@ -16,11 +16,10 @@ func DateTime(h *handler.Handler, s *string) error {
 	*s = getTimeString(time.Now().In(loc))
 	h.Tick()
 
-	now := time.Now()
-	time.Sleep(now.Truncate(time.Minute).Add(time.Minute).Sub(now))
-	ticker := time.NewTicker(time.Minute)
-
 	go func() {
+		now := time.Now()
+		time.Sleep(now.Truncate(time.Minute).Add(time.Minute).Sub(now))
+		ticker := time.NewTicker(time.Minute)
 		for {
 			*s = getTimeString(time.Now().In(loc))
 			h.Tick()

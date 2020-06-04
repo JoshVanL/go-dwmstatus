@@ -6,10 +6,7 @@ import "C"
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 
 	"github.com/joshvanl/go-dwmstatus/errors"
 	"github.com/joshvanl/go-dwmstatus/sysinfo"
@@ -74,12 +71,6 @@ func (h *Handler) Tick() {
 
 	C.XStoreName(dpy, C.XDefaultRootWindow(dpy), C.CString(output))
 	C.XSync(dpy, 1)
-}
-
-func (h *Handler) WatchSignal(sig syscall.Signal) <-chan os.Signal {
-	ch := make(chan os.Signal)
-	signal.Notify(ch, sig)
-	return ch
 }
 
 func (h *Handler) SysInfo() *sysinfo.SysInfo {
