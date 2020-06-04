@@ -15,7 +15,7 @@ const (
 	statsRXPath = "statistics/rx_bytes"
 	statsTXPath = "statistics/tx_bytes"
 
-	secs = 2
+	secs = 1
 )
 
 func Bandwidth(h *handler.Handler, s *string) error {
@@ -29,19 +29,17 @@ func Bandwidth(h *handler.Handler, s *string) error {
 	// received, transmitted
 	x := getBytesX(ifaceHandler)
 
-	*s = "🔻0KiB 🔺0KiB"
+	*s = " 0KiB 0KiB"
 	h.Tick()
 
 	go func() {
 		for {
 			currX := getBytesX(ifaceHandler)
 
-			if !(currX[0] == x[0] && currX[1] == x[1]) {
-				*s = fmt.Sprintf("🔻%.1fKiB 🔺%.1fKiB", (currX[0]-x[0])/(1024*2), (currX[1]-x[1])/(1024*2))
-				x[0], x[1] = currX[0], currX[1]
+			*s = fmt.Sprintf("%.1fKiB %.1fKiB", (currX[0]-x[0])/(1024*secs), (currX[1]-x[1])/(1024*secs))
+			x[0], x[1] = currX[0], currX[1]
 
-				h.Tick()
-			}
+			h.Tick()
 
 			<-ticker.C
 		}
@@ -60,7 +58,7 @@ func getBytesX(ifaceHandler *netHandler) [2]float64 {
 			fpath := filepath.Join(devPath, iface.Name, xf)
 			x, err := utils.ReadFileToFloat(fpath)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to read %s: %s", fpath, err)
+				fmt.Fprintf(os.Stderr, "failed to read %s: %s\n", fpath, err)
 				continue
 			}
 

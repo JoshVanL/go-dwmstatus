@@ -25,7 +25,7 @@ func Mic(h *handler.Handler, s *string) error {
 		for {
 			*s, err = updateMic(sinkClient)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to update microphone: %s", err)
+				fmt.Fprintf(os.Stderr, "failed to update microphone: %s\n", err)
 			}
 			h.Tick()
 

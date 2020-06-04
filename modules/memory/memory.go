@@ -14,7 +14,8 @@ func Memory(h *handler.Handler, s *string) error {
 			mem[0], mem[1])
 	}
 
-	ticker := time.NewTicker(time.Second / 2)
+	//ticker := time.NewTicker(time.Second / 2)
+	ticker := time.NewTicker(time.Second)
 
 	go func() {
 		for {

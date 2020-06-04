@@ -14,12 +14,12 @@ func CPU(h *handler.Handler, s *string) error {
 		if load == -1 {
 			*s = " 0.00%"
 		} else {
-			//block.FullText = fmt.Sprintf("cpu %.2f%%", load)
 			*s = fmt.Sprintf(" %.2f%%", load)
 		}
 	}
 
-	ticker := time.NewTicker(time.Second / 2)
+	//ticker := time.NewTicker(time.Second / 2)
+	ticker := time.NewTicker(time.Second)
 	go func() {
 		for {
 			update()

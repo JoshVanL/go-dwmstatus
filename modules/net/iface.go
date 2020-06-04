@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joshvanl/go-dwmstatus/handler"
@@ -24,7 +25,7 @@ func IFace(h *handler.Handler, s *string) error {
 		for {
 			ips, ok, err := getIPs(ifaceHandler.ifaces)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to get iface addresses: %s", err)
+				fmt.Fprintf(os.Stderr, "failed to get iface addresses: %s\n", err)
 				time.Sleep(time.Second)
 				continue
 			}
@@ -35,10 +36,12 @@ func IFace(h *handler.Handler, s *string) error {
 				continue
 			}
 
-			*s = ""
+			var strs []string
 			for name, ip := range ips {
-				*s += name + ":" + ip
+				strs = append(strs, name+":"+ip)
 			}
+
+			*s = strings.Join(strs, " ")
 
 			h.Tick()
 			ifaceHandler.cond.Wait()

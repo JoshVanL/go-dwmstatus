@@ -38,7 +38,8 @@ func New() (*SysInfo, error) {
 }
 
 func (s *SysInfo) run() {
-	ticker := time.NewTicker(time.Second / 2).C
+	//ticker := time.NewTicker(time.Second / 2).C
+	ticker := time.NewTicker(time.Second).C
 	var sysinfo_t unix.Sysinfo_t
 
 	for {

@@ -26,7 +26,7 @@ func Weather(h *handler.Handler, s *string) error {
 	update := func() bool {
 		temp, err := request(key)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to request weather: %s", err)
+			fmt.Fprintf(os.Stderr, "failed to request weather: %s\n", err)
 			return false
 		}
 

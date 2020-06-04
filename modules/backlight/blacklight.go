@@ -23,7 +23,7 @@ func Backlight(h *handler.Handler, s *string) error {
 		for {
 			*s, err = update(h)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to update backlight: %s", err)
+				fmt.Fprintf(os.Stderr, "failed to update backlight: %s\n", err)
 			}
 			h.Tick()
 

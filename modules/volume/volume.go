@@ -35,7 +35,7 @@ func Volume(h *handler.Handler, s *string) error {
 			//*s = ""
 			*s, err = updateVolume(sinkClient)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to update volume: %s", err)
+				fmt.Fprintf(os.Stderr, "failed to update volume: %s\n", err)
 			}
 			h.Tick()
 			//TODO: add muted option

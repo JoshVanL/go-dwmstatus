@@ -59,7 +59,7 @@ func getNetHandler() (*netHandler, error) {
 			}
 
 			if err := sharedNetHandler.updateIFaces(); err != nil {
-				fmt.Fprintf(os.Stderr, "failed to get interfaces: %s", err)
+				fmt.Fprintf(os.Stderr, "failed to get interfaces: %s\n", err)
 			}
 
 			sharedNetHandler.cond.Broadcast()

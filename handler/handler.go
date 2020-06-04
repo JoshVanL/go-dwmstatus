@@ -72,12 +72,7 @@ func (h *Handler) Tick() {
 		output += *s
 	}
 
-	fmt.Printf("%s\n", output)
-	//setStatus(C.CString(output))
-}
-
-func setStatus(s *C.char) {
-	C.XStoreName(dpy, C.XDefaultRootWindow(dpy), s)
+	C.XStoreName(dpy, C.XDefaultRootWindow(dpy), C.CString(output))
 	C.XSync(dpy, 1)
 }
 
