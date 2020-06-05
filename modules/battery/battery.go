@@ -98,11 +98,11 @@ func getIcon(capacity int) string {
 	case capacity > 75:
 		return ""
 
-	case capacity > 60:
-		//b.Color = "#ddffaa"
+	//case capacity > 60:
+	//b.Color = "#ddffaa"
 
-	case capacity > 50:
-		//b.Color = "#eeffaa"
+	//case capacity > 50:
+	//b.Color = "#eeffaa"
 
 	case capacity > 30:
 		//b.Color = "#ffdd77"

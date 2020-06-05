@@ -18,8 +18,9 @@ func DateTime(h *handler.Handler, s *string) error {
 
 	go func() {
 		now := time.Now()
-		time.Sleep(now.Truncate(time.Minute).Add(time.Minute).Sub(now))
+		time.Sleep(time.Second * time.Duration(60-now.Second()))
 		ticker := time.NewTicker(time.Minute)
+
 		for {
 			*s = getTimeString(time.Now().In(loc))
 			h.Tick()
@@ -32,6 +33,6 @@ func DateTime(h *handler.Handler, s *string) error {
 }
 
 func getTimeString(t time.Time) string {
-	return fmt.Sprintf("%s %d %s %d %s",
+	return fmt.Sprintf(`%s %d %s %d %s`,
 		t.Format("Mon"), t.Day(), t.Month().String()[:3], t.Year(), t.Format("15:04"))
 }

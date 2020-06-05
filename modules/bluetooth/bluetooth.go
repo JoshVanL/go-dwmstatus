@@ -136,7 +136,7 @@ func (b *bluetoothHandler) watch() error {
 func (b *bluetoothHandler) update() {
 	var output string
 	for name := range b.connectedDevices {
-		output += name
+		output += name + " "
 	}
 
 	if b.powerOn {
