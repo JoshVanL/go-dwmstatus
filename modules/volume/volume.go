@@ -31,15 +31,12 @@ func Volume(h *handler.Handler, s *string) error {
 
 	go func() {
 		for {
-			//*s, err = "  ", nil
-			//*s = ""
 			*s, err = updateVolume(sinkClient)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to update volume: %s\n", err)
 			}
-			h.Tick()
-			//TODO: add muted option
 
+			h.Tick()
 			<-ch
 		}
 	}()
@@ -66,7 +63,14 @@ func updateVolume(c *pulse.Client) (string, error) {
 	if err != nil {
 		return "-%", err
 	}
-	vol := math.Round(100 * float64(sinks[len(sinks)-1].CurrentVolumeStep) / float64(sinks[len(sinks)-1].NumVolumeSteps))
+
+	lastSink := sinks[len(sinks)-1]
+
+	if lastSink.Muted {
+		return " x", nil
+	}
+
+	vol := math.Round(100 * float64(lastSink.CurrentVolumeStep) / float64(lastSink.NumVolumeSteps))
 
 	icon := ""
 	if vol == 0 {
