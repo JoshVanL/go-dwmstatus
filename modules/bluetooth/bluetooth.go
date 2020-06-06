@@ -32,6 +32,9 @@ type bluetoothHandler struct {
 
 	adapter *adapter.Adapter1
 	handler *handler.Handler
+
+	selectCaseWatchers []reflect.SelectCase
+	names              []string
 }
 
 func Bluetooth(h *handler.Handler, s *string) error {
@@ -56,16 +59,16 @@ func Bluetooth(h *handler.Handler, s *string) error {
 }
 
 func (b *bluetoothHandler) watch() error {
-	var selectCaseWatchers []reflect.SelectCase
-	var names []string
-
 	adapterCh, err := b.adapter.WatchProperties()
 	if err != nil {
 		return err
 	}
 
-	selectCaseWatchers = append(selectCaseWatchers, reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(adapterCh)})
-	names = append(names, b.adapter.Properties.Name)
+	b.names = make([]string, 0)
+	b.selectCaseWatchers = make([]reflect.SelectCase, 0)
+
+	b.selectCaseWatchers = append(b.selectCaseWatchers, reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(adapterCh)})
+	b.names = append(b.names, b.adapter.Properties.Name)
 
 	fmt.Printf("watching bluetooth adapter: %s\n", b.adapter.Properties.Name)
 
@@ -84,8 +87,8 @@ func (b *bluetoothHandler) watch() error {
 
 				fmt.Printf("watching bluetooth device: %s\n", d.Properties.Name)
 
-				selectCaseWatchers = append(selectCaseWatchers, reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)})
-				names = append(names, d.Properties.Name)
+				b.selectCaseWatchers = append(b.selectCaseWatchers, reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)})
+				b.names = append(b.names, d.Properties.Name)
 				if d.Properties.Connected {
 					b.connectedDevices[d.Properties.Name] = struct{}{}
 				}
@@ -95,40 +98,52 @@ func (b *bluetoothHandler) watch() error {
 
 	go func() {
 		for {
-			chosen, value, _ := reflect.Select(selectCaseWatchers)
-
-			prop, ok := value.Interface().(*bluez.PropertyChanged)
-			if !ok {
-				fmt.Fprintf(os.Stderr, "failed to get propery value: %s\n", value.String())
-				continue
+			if err := b.nextEvent(); err != nil {
+				fmt.Fprintf(os.Stderr, err.Error())
 			}
-
-			switch prop.Interface {
-			case adapter.Adapter1Interface:
-				if prop.Name == "Powered" {
-					b.powerOn = prop.Value.(bool)
-				}
-
-			case device.Device1Interface:
-				if prop.Name != "Connected" {
-					continue
-				}
-
-				if prop.Value.(bool) {
-					b.connectedDevices[names[chosen]] = struct{}{}
-				} else {
-					delete(b.connectedDevices, names[chosen])
-				}
-
-			default:
-				fmt.Fprintf(os.Stderr, "unrecognised property interface: %s\n", prop.Interface)
-				continue
-			}
-
-			b.update()
-			b.handler.Tick()
 		}
 	}()
+
+	return nil
+}
+
+func (b *bluetoothHandler) nextEvent() error {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Fprintf(os.Stderr, "recovered bluetooth panic: %s\n", r)
+		}
+	}()
+
+	chosen, value, _ := reflect.Select(b.selectCaseWatchers)
+
+	prop, ok := value.Interface().(*bluez.PropertyChanged)
+	if !ok {
+		return fmt.Errorf("failed to get propery value: %s\n", value.String())
+	}
+
+	switch prop.Interface {
+	case adapter.Adapter1Interface:
+		if prop.Name == "Powered" {
+			b.powerOn = prop.Value.(bool)
+		}
+
+	case device.Device1Interface:
+		if prop.Name != "Connected" {
+			return nil
+		}
+
+		if prop.Value.(bool) {
+			b.connectedDevices[b.names[chosen]] = struct{}{}
+		} else {
+			delete(b.connectedDevices, b.names[chosen])
+		}
+
+	default:
+		return fmt.Errorf("unrecognised property interface: %s\n", prop.Interface)
+	}
+
+	b.update()
+	b.handler.Tick()
 
 	return nil
 }
