@@ -11,6 +11,10 @@ import (
 	"github.com/joshvanl/go-dwmstatus/handler"
 )
 
+const (
+	envKey = "GO_I3STATUS_WEATHER_API"
+)
+
 type Response struct {
 	Main struct {
 		Temp float64 `json:"temp"`
@@ -18,8 +22,9 @@ type Response struct {
 }
 
 func Weather(h *handler.Handler, s *string) error {
-	key := os.Getenv("GO_I3STATUS_WEATHER_API")
+	key := os.Getenv(envKey)
 	if len(key) == 0 {
+		fmt.Fprintf(os.Stdout, "weather disabled, env %q empty\n", envKey)
 		return nil
 	}
 
