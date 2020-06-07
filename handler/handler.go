@@ -6,9 +6,11 @@ import "C"
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
-	"github.com/joshvanl/go-dwmstatus/errors"
 	"github.com/joshvanl/go-dwmstatus/sysinfo"
 	"github.com/joshvanl/go-dwmstatus/watcher"
 )
@@ -42,7 +44,7 @@ func New() (*Handler, error) {
 	}
 
 	if dpy == nil {
-		h.Must(fmt.Errorf("failed to open display: %v", dpy))
+		return nil, fmt.Errorf("failed to open display: %v", dpy)
 	}
 
 	go h.signalHandler()
@@ -77,20 +79,36 @@ func (h *Handler) SysInfo() *sysinfo.SysInfo {
 	return h.sysinfo
 }
 
-func (h *Handler) Must(err error) {
-	if err == nil {
-		return
-	}
-
-	errors.Kill(fmt.Errorf("go-dwmstatus was killed: %v\n", err))
-}
-
 func (h *Handler) signalHandler() {
-	ch := errors.NewSignalHandler()
-	<-ch
-	h.Must(fmt.Errorf("got signal interupt"))
+	sig := make(chan os.Signal)
+	signal.Notify(sig, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGINT)
+
+	recSig := <-sig
+
+	Kill(fmt.Errorf("go-dwmstatus was killed: got signal: %s", recSig))
 }
 
 func (h *Handler) Watcher() *watcher.Watcher {
 	return h.watcher
+}
+
+func Kill(err error) {
+	defer func() {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(0)
+	}()
+
+	if err := os.MkdirAll("/home/josh/.cache/go-dwmstatus", 0755); err != nil {
+		fmt.Fprint(os.Stderr, err)
+		return
+	}
+
+	f, ferr := os.OpenFile("/home/josh/.cache/go-dwmstatus/err.log", os.O_CREATE|os.O_WRONLY, 0666)
+	if ferr != nil {
+		fmt.Fprint(os.Stderr, err)
+		return
+	}
+
+	fmt.Fprint(f, err)
+	f.Close()
 }
