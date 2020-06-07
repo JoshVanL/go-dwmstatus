@@ -2,6 +2,7 @@ package battery
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -42,7 +43,11 @@ func Battery(h *handler.Handler, s *string) error {
 	go func() {
 		for {
 			<-ticker.C
-			b.h.Must(b.setBatteryString())
+
+			if err := b.setBatteryString(); err != nil {
+				fmt.Fprintf(os.Stderr, "failed to get battery: %s\n", err)
+			}
+
 			b.h.Tick()
 		}
 	}()
@@ -51,7 +56,11 @@ func Battery(h *handler.Handler, s *string) error {
 }
 
 func (b *battery) setBatteryString() error {
-	status, capacity := b.getFiles()
+	status, capacity, err := b.getFiles()
+	if err != nil {
+		return err
+	}
+
 	i, err := strconv.Atoi(string(capacity))
 	if err != nil {
 		return err
@@ -68,18 +77,22 @@ func (b *battery) setBatteryString() error {
 	return nil
 }
 
-func (b *battery) getFiles() (status, capacity []byte) {
-	status, err := utils.ReadFile(statPath)
-	b.h.Must(err)
+func (b *battery) getFiles() (status, capacity []byte, err error) {
+	status, err = utils.ReadFile(statPath)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	capacity, err = utils.ReadFile(capPath)
-	b.h.Must(err)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	if string(capacity) == "100" {
 		status = []byte("full")
 	}
 
-	return status, capacity
+	return status, capacity, nil
 }
 
 func getIcon(capacity int) string {

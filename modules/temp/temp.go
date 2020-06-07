@@ -3,6 +3,7 @@ package temp
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -47,10 +48,14 @@ func Temp(h *handler.Handler, s *string) error {
 	go func() {
 		for {
 			b, err := utils.ReadFile(path)
-			h.Must(err)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to read temp file: %s\n", err)
+			}
 
 			temp, err := strconv.ParseFloat(string(b), 64)
-			h.Must(err)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "failed to get temp: %s\n", err)
+			}
 
 			temp = temp / 1000
 

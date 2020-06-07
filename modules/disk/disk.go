@@ -2,6 +2,7 @@ package disk
 
 import (
 	"fmt"
+	"os"
 	"syscall"
 	"time"
 
@@ -30,7 +31,11 @@ func Disk(h *handler.Handler, s *string) error {
 	go func() {
 		for {
 			<-ticker.C
-			h.Must(update())
+
+			if err := update(); err != nil {
+				fmt.Fprintf(os.Stderr, "failed to get disk update: %s\n", err)
+			}
+
 			h.Tick()
 		}
 	}()
