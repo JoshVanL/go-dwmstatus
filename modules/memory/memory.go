@@ -19,9 +19,9 @@ func Memory(h *handler.Handler, s *string) error {
 
 	go func() {
 		for {
-			<-ticker.C
 			update()
 			h.Tick()
+			<-ticker.C
 		}
 	}()
 
