@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"time"
 
-	"github.com/joshvanl/go-dwmstatus/errors"
 	"github.com/joshvanl/go-dwmstatus/handler"
 	"github.com/joshvanl/go-dwmstatus/modules/backlight"
 	"github.com/joshvanl/go-dwmstatus/modules/battery"
@@ -13,21 +14,23 @@ import (
 	"github.com/joshvanl/go-dwmstatus/modules/disk"
 	"github.com/joshvanl/go-dwmstatus/modules/memory"
 	"github.com/joshvanl/go-dwmstatus/modules/net"
+	"github.com/joshvanl/go-dwmstatus/modules/pulse"
 	"github.com/joshvanl/go-dwmstatus/modules/temp"
-	"github.com/joshvanl/go-dwmstatus/modules/volume"
 	"github.com/joshvanl/go-dwmstatus/modules/weather"
 )
 
+type module struct {
+	register func(*handler.Handler, *string) error
+	name     string
+}
+
 var (
-	enabledBlocks = []struct {
-		f func(*handler.Handler, *string) error
-		string
-	}{
+	enabledModules = []*module{
 		{weather.Weather, "weather"},
 		{sep, ""},
 		{bluetooth.Bluetooth, "bluetooth"},
-		{volume.Mic, "mic"},
-		{volume.Volume, "volume"},
+		{pulse.Mic, "mic"},
+		{pulse.Volume, "volume"},
 		{sep, ""},
 		{cpu.CPU, "cpu"},
 		{space, ""},
@@ -63,19 +66,52 @@ func space(_ *handler.Handler, s *string) error {
 func main() {
 	h, err := handler.New()
 	if err != nil {
-		errors.Kill(fmt.Errorf("error creating handler: %s\n", err))
+		handler.Kill(fmt.Errorf("error creating handler: %s\n", err))
 	}
 
-	for _, registerModule := range enabledBlocks {
-		if len(registerModule.string) > 0 {
-			fmt.Printf("registering module: %s\n", registerModule.string)
+	type failedRegister struct {
+		*module
+		*string
+	}
+
+	var retry []failedRegister
+
+	for _, module := range enabledModules {
+		if len(module.name) > 0 {
+			fmt.Printf("registering module: %s\n", module.name)
 		}
 
 		s := h.NewModule()
-		h.Must(registerModule.f(h, s))
+		if !registerModule(h, module, s) {
+			retry = append(retry, failedRegister{module, s})
+		}
 	}
 
-	fmt.Printf("all modules registered\n")
+	for len(retry) > 0 {
+		time.Sleep(time.Second)
+
+		var nextRetry []failedRegister
+		for _, r := range retry {
+			fmt.Printf("retrying registering module: %s\n", r.name)
+
+			if !registerModule(h, r.module, r.string) {
+				nextRetry = append(nextRetry, failedRegister{r.module, r.string})
+			}
+		}
+
+		retry = nextRetry
+	}
+
+	fmt.Fprint(os.Stdout, "all modules registered\n")
 
 	select {}
+}
+
+func registerModule(h *handler.Handler, module *module, s *string) bool {
+	if err := module.register(h, s); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to register module %s: %s\n", module.name, err)
+		return false
+	}
+
+	return true
 }
