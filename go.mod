@@ -8,5 +8,4 @@ require (
 	github.com/mickep76/netlink v0.0.0-20171228224349-516f7a6408d4
 	github.com/muka/go-bluetooth v0.0.0-20200527142246-c69565a982b8
 	golang.org/x/sys v0.0.0-20200523222454-059865788121
-	mrogalski.eu/go/pulseaudio v0.0.0-20200511091429-8449222912dd
 )

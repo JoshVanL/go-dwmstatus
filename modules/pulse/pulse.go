@@ -2,36 +2,57 @@ package pulse
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/auroralaboratories/pulse"
-	"mrogalski.eu/go/pulseaudio"
+)
+
+var (
+	sharedHandler *pulseHandler
 )
 
 type pulseHandler struct {
-	events <-chan struct{}
-	*pulse.Client
+	mu     sync.Mutex
+	events <-chan pulse.EventType
+
+	client *pulse.Client
 }
 
 func getHandler() (*pulseHandler, error) {
+	if sharedHandler != nil {
+		return sharedHandler, nil
+	}
+
 	client, err := pulse.NewClient("go-dwnstatus-client")
 	if err != nil {
 		return nil, fmt.Errorf("failed to instantiate shared pulse client: %s", err)
 	}
 
-	subscriptionClient, err := pulseaudio.NewClient()
+	subscriptionClient, err := pulse.NewClient("go-dwnstatus-watcher")
 	if err != nil {
 		return nil, err
 	}
 
-	ch, err := subscriptionClient.Updates()
-	if err != nil {
-		return nil, err
-	}
+	ch := subscriptionClient.Subscribe(pulse.AllEvent)
 
-	sharedHandler := &pulseHandler{
+	sharedHandler = &pulseHandler{
 		events: ch,
-		Client: client,
+		client: client,
 	}
 
 	return sharedHandler, nil
+}
+
+func (p *pulseHandler) GetSinks() ([]pulse.Sink, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	return p.client.GetSinks()
+}
+
+func (p *pulseHandler) GetSources() ([]pulse.Source, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	return p.client.GetSources()
 }
