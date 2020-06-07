@@ -1,4 +1,4 @@
-package volume
+package pulse
 
 import (
 	"errors"
@@ -6,38 +6,32 @@ import (
 	"os"
 	"strings"
 
-	"github.com/auroralaboratories/pulse"
 	"github.com/joshvanl/go-dwmstatus/handler"
 )
 
 func Mic(h *handler.Handler, s *string) error {
-	sinkClient, err := pulse.NewClient("go-dwnstatus-mic")
+	handler, err := getHandler()
 	if err != nil {
-		return fmt.Errorf("failed to get mic client for pulse: %s", err)
-	}
-
-	ch, err := pulseWatcher()
-	if err != nil {
-		return fmt.Errorf("failed to get watcher for mic: %s", err)
+		return err
 	}
 
 	go func() {
 		for {
-			*s, err = updateMic(sinkClient)
+			*s, err = updateMic(handler)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to update microphone: %s\n", err)
 			}
 			h.Tick()
 
-			<-ch
+			<-handler.events
 		}
 	}()
 
 	return nil
 }
 
-func updateMic(c *pulse.Client) (string, error) {
-	sinks, err := c.GetSources()
+func updateMic(handler *pulseHandler) (string, error) {
+	sinks, err := handler.GetSources()
 	if err != nil {
 		return "-", err
 	}
