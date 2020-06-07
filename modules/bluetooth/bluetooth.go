@@ -7,8 +7,6 @@ import (
 
 	"github.com/joshvanl/go-dwmstatus/handler"
 
-	//"github.com/godbus/dbus/introspect"
-	//"github.com/muka/go-bluetooth/api"
 	"github.com/muka/go-bluetooth/bluez"
 	"github.com/muka/go-bluetooth/bluez/profile/adapter"
 	"github.com/muka/go-bluetooth/bluez/profile/device"
@@ -96,6 +94,9 @@ func (b *bluetoothHandler) watch() error {
 		}
 	}
 
+	b.update()
+	b.handler.Tick()
+
 	go func() {
 		for {
 			if err := b.nextEvent(); err != nil {
@@ -108,12 +109,6 @@ func (b *bluetoothHandler) watch() error {
 }
 
 func (b *bluetoothHandler) nextEvent() error {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Fprintf(os.Stderr, "recovered bluetooth panic: %s\n", r)
-		}
-	}()
-
 	chosen, value, _ := reflect.Select(b.selectCaseWatchers)
 
 	prop, ok := value.Interface().(*bluez.PropertyChanged)
