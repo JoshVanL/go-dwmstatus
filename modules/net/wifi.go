@@ -25,7 +25,7 @@ func Wifi(h *handler.Handler, s *string) error {
 			}
 
 			if len(w) > 0 {
-				*s = fmt.Sprintf(" %s%%", w)
+				*s = fmt.Sprintf(" %s%% ", w)
 
 				////if n >= 70 {
 				////	block.Color = "#0050b8"

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	envKey = "GO_I3STATUS_WEATHER_API"
+	envKey = "GO_DWMSTATUS_WEATHER_API"
 )
 
 type Response struct {

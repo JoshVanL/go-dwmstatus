@@ -31,7 +31,7 @@ func IFace(h *handler.Handler, s *string) error {
 			}
 
 			// If iface is running but address not ready, try again in half a second
-			if !ok {
+			if !ok || len(ips) == 0 {
 				time.Sleep(time.Second / 2)
 				continue
 			}
