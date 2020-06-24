@@ -18,7 +18,12 @@ func DateTime(h *handler.Handler, s *string) error {
 
 	go func() {
 		now := time.Now()
-		time.Sleep(time.Second * time.Duration(60-now.Second()))
+		time.Sleep(
+			time.Until(
+				time.Date(
+					now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), 0, 0, loc).
+					Add(time.Minute)))
+
 		ticker := time.NewTicker(time.Minute)
 
 		for {
