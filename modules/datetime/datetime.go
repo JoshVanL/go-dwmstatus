@@ -38,6 +38,6 @@ func DateTime(h *handler.Handler, s *string) error {
 }
 
 func getTimeString(t time.Time) string {
-	return fmt.Sprintf(`%s %d %s %d %s`,
-		t.Format("Mon"), t.Day(), t.Month().String()[:3], t.Year(), t.Format("15:04"))
+	return fmt.Sprintf(`%s %d %s %d %02d:%02d`,
+		t.Format("Mon"), t.Day(), t.Month().String()[:3], t.Year(), t.Hour(), t.Minute())
 }

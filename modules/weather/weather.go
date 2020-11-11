@@ -47,7 +47,7 @@ func Weather(h *handler.Handler, s *string) error {
 			<-ticker.C
 		}
 
-		ticker = time.NewTicker(time.Minute * 30)
+		ticker = time.NewTicker(time.Minute * 10)
 
 		for update() {
 			<-ticker.C

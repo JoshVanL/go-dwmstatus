@@ -38,7 +38,7 @@ type bluetoothHandler struct {
 func Bluetooth(h *handler.Handler, s *string) error {
 	a, err := adapter.GetAdapter(iface)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get adapter: %s", err)
 	}
 
 	bluetoothHandler := &bluetoothHandler{
@@ -50,7 +50,7 @@ func Bluetooth(h *handler.Handler, s *string) error {
 	}
 
 	if err := bluetoothHandler.watch(); err != nil {
-		return err
+		return fmt.Errorf("failed to watch bluetooth handler: %s", err)
 	}
 
 	return nil
